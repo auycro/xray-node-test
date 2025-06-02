@@ -1,0 +1,27 @@
+services:
+  xray-daemon:
+    image: amazon/aws-xray-daemon
+    container_name: xray-daemon
+    ports:
+      - "2000:2000/udp"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-ap-northeast-1}
+
+  app:
+    build: .
+    container_name: node-fastify-sqs-xray
+    environment:
+      #- AWS_XRAY_DAEMON_ADDRESS=xray-daemon:2000
+      #- AWS_REGION=us-east-1 
+      # Add other environment variables as needed, e.g. AWS credentials, SQS URL
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-ap-northeast-1}
+      - SQS_QUEUE_URL=${SQS_QUEUE_URL}
+      - AWS_XRAY_DAEMON_ADDRESS=${AWS_XRAY_DAEMON_ADDRESS:-xray-daemon:2000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - xray-daemon
